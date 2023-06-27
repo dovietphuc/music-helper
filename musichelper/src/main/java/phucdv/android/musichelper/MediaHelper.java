@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 
 import androidx.core.content.ContextCompat;
@@ -42,8 +43,18 @@ public class MediaHelper {
                         String thisTitle = musicCursor.getString(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
                         String thisArtist = musicCursor.getString(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
                         String thisAlbum = musicCursor.getString(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
-                        Uri artUri = Uri.parse("content://media/external/audio/albumart");
-                        Uri thisAlbumUri = ContentUris.withAppendedId(artUri, musicCursor.getInt(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ID)));
+                        long albumId = musicCursor.getLong(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ID));
+                        Uri thisAlbumUri;
+                        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                            Uri artUri = Uri.parse("content://media/external/audio/albumart");
+                            thisAlbumUri = ContentUris.withAppendedId(artUri, albumId);
+                        } else {
+                            thisAlbumUri = ContentUris.withAppendedId(
+                                    MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                                    albumId
+                            );
+                        }
+
                         long thisTimes = musicCursor.getLong(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
                         Song songItem = new Song();
                         songItem.setId(thisId);
